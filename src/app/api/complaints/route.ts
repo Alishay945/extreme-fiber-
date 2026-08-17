@@ -1,37 +1,7 @@
 import { NextResponse } from "next/server";
 import clientPromise from "@/lib/mongodb";
 
-const seedComplaints = [
-  {
-    id: "TKT-501",
-    customerId: "EF-SAE-001",
-    customerName: "M. Junaid",
-    phone: "0300-1234567",
-    address: "House in Saeela",
-    category: "No Internet",
-    description: "Red optical light blinking on fiber ONU modem after thunderstorm.",
-    priority: "High",
-    status: "Open",
-    assignedStaff: "Raza Technician",
-    createdAt: "2026-08-08 09:30 AM",
-    updatedAt: "2026-08-08 09:30 AM",
-  },
-  {
-    id: "TKT-502",
-    customerId: "EF-ARS-002",
-    customerName: "Faizan AC",
-    phone: "0312-9876543",
-    address: "Shop in Arsal Town",
-    category: "Slow Speed",
-    description: "Ping fluctuating during peak hours.",
-    priority: "Medium",
-    status: "In Progress",
-    assignedStaff: "Ali Technician",
-    createdAt: "2026-08-07 04:15 PM",
-    updatedAt: "2026-08-08 10:00 AM",
-    resolutionNotes: "Checking bandwidth allocation on distribution switch Port 8.",
-  },
-];
+const seedComplaints: any[] = [];
 
 export const dynamic = "force-dynamic";
 

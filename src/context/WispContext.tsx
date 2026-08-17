@@ -93,6 +93,14 @@ const WispContext = createContext<WispContextType | undefined>(undefined);
 export const WispProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [customers, setCustomers] = useState<Customer[]>(() => {
     if (typeof window !== "undefined") {
+      if (localStorage.getItem("ef_wisp_v5_clean") !== "true") {
+        localStorage.removeItem("ef_wisp_customers");
+        localStorage.removeItem("ef_wisp_payments");
+        localStorage.removeItem("ef_wisp_complaints");
+        localStorage.removeItem("ef_wisp_daily_chores");
+        localStorage.setItem("ef_wisp_v5_clean", "true");
+        return [];
+      }
       const saved = localStorage.getItem("ef_wisp_customers");
       if (saved) try { return JSON.parse(saved); } catch (e) {}
     }
@@ -109,6 +117,10 @@ export const WispProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const [payments, setPayments] = useState<Payment[]>(() => {
     if (typeof window !== "undefined") {
+      if (localStorage.getItem("ef_wisp_v5_clean") !== "true") {
+        localStorage.removeItem("ef_wisp_payments");
+        return [];
+      }
       const saved = localStorage.getItem("ef_wisp_payments");
       if (saved) try { return JSON.parse(saved); } catch (e) {}
     }
@@ -117,6 +129,10 @@ export const WispProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const [complaints, setComplaints] = useState<Complaint[]>(() => {
     if (typeof window !== "undefined") {
+      if (localStorage.getItem("ef_wisp_v5_clean") !== "true") {
+        localStorage.removeItem("ef_wisp_complaints");
+        return [];
+      }
       const saved = localStorage.getItem("ef_wisp_complaints");
       if (saved) try { return JSON.parse(saved); } catch (e) {}
     }
@@ -125,6 +141,10 @@ export const WispProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const [dailyChores, setDailyChores] = useState<DailyChore[]>(() => {
     if (typeof window !== "undefined") {
+      if (localStorage.getItem("ef_wisp_v5_clean") !== "true") {
+        localStorage.removeItem("ef_wisp_daily_chores");
+        return [];
+      }
       const saved = localStorage.getItem("ef_wisp_daily_chores");
       if (saved) try { return JSON.parse(saved); } catch (e) {}
     }
