@@ -2,6 +2,8 @@ import { NextResponse } from "next/server";
 import clientPromise from "@/lib/mongodb";
 import initialData from "@/data/initialData.json";
 
+export const dynamic = "force-dynamic";
+
 export async function GET() {
   try {
     const client = await clientPromise;

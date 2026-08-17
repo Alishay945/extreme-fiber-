@@ -3,6 +3,7 @@
 import React from "react";
 import { Complaint } from "@/types/wisp";
 import { Wrench, Printer, X, ShieldAlert, Share2 } from "lucide-react";
+import AuthorizedStamp from "@/components/AuthorizedStamp";
 
 interface ComplaintSlipModalProps {
   complaint: Complaint | null;
@@ -231,7 +232,7 @@ Extreme Fiber Helpdesk 0300-888-FIBER`;
           </div>
 
           {/* Signatures & Footer */}
-          <div className="flex items-center justify-between pt-2">
+          <div className="relative flex items-center justify-between pt-2 min-h-[90px]">
             <div className="text-left text-[11px] text-slate-600 font-semibold">
               <div className="h-6 border-b border-slate-400 w-28 mb-1"></div>
               <p>Subscriber Signature</p>
@@ -243,9 +244,16 @@ Extreme Fiber Helpdesk 0300-888-FIBER`;
               </span>
             </div>
 
-            <div className="text-right text-[11px] text-slate-600 font-semibold">
-              <div className="h-6 border-b border-slate-400 w-28 ml-auto mb-1"></div>
-              <p>Field Tech Signature</p>
+            <div className="relative text-right text-[11px] text-slate-600 font-semibold pr-2">
+              <div className="h-6 border-b border-slate-400 w-32 ml-auto mb-1"></div>
+              <p className="relative z-10">Field Tech / Authorized Stamp</p>
+
+              <AuthorizedStamp
+                receiptNumber={`#${complaint.id}`}
+                date={complaint.createdAt.split(" ")[0]}
+                receiverName={complaint.assignedStaff.split(" ")[0] || "Faraz"}
+                className="-bottom-6 -right-4"
+              />
             </div>
           </div>
 

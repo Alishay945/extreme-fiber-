@@ -89,4 +89,7 @@ export interface Staff {
   status: 'Active' | 'On Leave';
   activeTicketsCount: number;
   todayCollections: number;
+  assignedArea?: string;
+  notes?: string;
 }
+

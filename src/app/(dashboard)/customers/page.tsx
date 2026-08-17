@@ -1169,6 +1169,176 @@ export default function CustomersPage() {
         </div>
       )}
 
+      {/* --- MODAL 2.5: EDIT SUBSCRIBER --- */}
+      {showEditModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 p-4 backdrop-blur-xs">
+          <div className="w-full max-w-lg overflow-y-auto max-h-[90vh] rounded-2xl border border-sky-200 bg-white p-6 shadow-2xl space-y-4 text-slate-900">
+            <div className="flex items-center justify-between border-b border-sky-100 pb-3">
+              <div>
+                <h3 className="text-lg font-bold text-slate-900 flex items-center gap-2">
+                  <Edit className="h-5 w-5 text-sky-600" />
+                  Edit Subscriber ({formCust.id})
+                </h3>
+                <p className="text-xs text-slate-500">Update subscriber details & sync with MongoDB Atlas database.</p>
+              </div>
+              <button
+                onClick={() => setShowEditModal(false)}
+                className="rounded-xl border border-slate-200 p-1.5 text-slate-500 hover:bg-slate-100"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            </div>
+
+            <form onSubmit={handleEditSubmit} className="space-y-3.5 text-xs">
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-slate-700 font-bold mb-1">Subscriber Name *</label>
+                  <input
+                    required
+                    type="text"
+                    value={formCust.name || ""}
+                    onChange={(e) => setFormCust({ ...formCust, name: e.target.value })}
+                    className="w-full rounded-xl border border-sky-300 bg-sky-50/50 px-3 py-2 text-slate-900 font-bold outline-none focus:border-sky-600 focus:bg-white"
+                  />
+                </div>
+                <div>
+                  <label className="block text-slate-700 font-bold mb-1">Phone Number *</label>
+                  <input
+                    type="text"
+                    value={formCust.phone || ""}
+                    onChange={(e) => setFormCust({ ...formCust, phone: e.target.value })}
+                    placeholder="03XX-XXXXXXX"
+                    className="w-full rounded-xl border border-sky-300 bg-sky-50/50 px-3 py-2 text-slate-900 font-mono font-semibold outline-none focus:border-sky-600 focus:bg-white"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-slate-700 font-bold mb-1">Sector Area *</label>
+                  <select
+                    value={formCust.area || "Saeela"}
+                    onChange={(e) => setFormCust({ ...formCust, area: e.target.value })}
+                    className="w-full rounded-xl border border-sky-300 bg-sky-50/50 px-3 py-2 text-slate-900 font-semibold outline-none focus:border-sky-600 focus:bg-white"
+                  >
+                    <option value="Saeela">Saeela Sector</option>
+                    <option value="Nougran">Nougran Sector</option>
+                    <option value="Arsal Town">Arsal Town</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-slate-700 font-bold mb-1">Line Connection Status</label>
+                  <select
+                    value={formCust.status || "Active"}
+                    onChange={(e) => setFormCust({ ...formCust, status: e.target.value as CustomerStatus })}
+                    className="w-full rounded-xl border border-sky-300 bg-sky-50/50 px-3 py-2 text-slate-900 font-semibold outline-none focus:border-sky-600 focus:bg-white"
+                  >
+                    <option value="Active">Active Line</option>
+                    <option value="DC">DC (Disconnected)</option>
+                    <option value="Suspended">Suspended</option>
+                    <option value="Pending">Pending</option>
+                  </select>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-slate-700 font-bold mb-1">Package Plan *</label>
+                  <select
+                    value={formCust.packageId || "PKG-10M"}
+                    onChange={(e) => {
+                      const selPkg = packages.find((p) => p.id === e.target.value);
+                      setFormCust({
+                        ...formCust,
+                        packageId: e.target.value,
+                        packageName: selPkg ? selPkg.name : formCust.packageName,
+                        monthlyFee: selPkg ? selPkg.monthlyPrice : formCust.monthlyFee,
+                      });
+                    }}
+                    className="w-full rounded-xl border border-sky-300 bg-sky-50/50 px-3 py-2 text-slate-900 font-semibold outline-none focus:border-sky-600 focus:bg-white"
+                  >
+                    {packages.map((pkg) => (
+                      <option key={pkg.id} value={pkg.id}>
+                        {pkg.name} (PKR {pkg.monthlyPrice})
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-slate-700 font-bold mb-1">Monthly Tariff (PKR) *</label>
+                  <input
+                    type="number"
+                    value={formCust.monthlyFee ?? 1200}
+                    onChange={(e) => setFormCust({ ...formCust, monthlyFee: Number(e.target.value) })}
+                    className="w-full rounded-xl border border-sky-300 bg-sky-50/50 px-3 py-2 text-slate-900 font-mono font-bold outline-none focus:border-sky-600 focus:bg-white"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-slate-700 font-bold mb-1">Pending Due Amount (PKR)</label>
+                  <input
+                    type="number"
+                    value={formCust.dueAmount ?? 0}
+                    onChange={(e) => setFormCust({ ...formCust, dueAmount: Number(e.target.value) })}
+                    className="w-full rounded-xl border border-sky-300 bg-sky-50/50 px-3 py-2 text-slate-900 font-mono font-bold outline-none focus:border-sky-600 focus:bg-white"
+                  />
+                </div>
+                <div>
+                  <label className="block text-slate-700 font-bold mb-1">CNIC Number</label>
+                  <input
+                    type="text"
+                    value={formCust.cnic || ""}
+                    onChange={(e) => setFormCust({ ...formCust, cnic: e.target.value })}
+                    placeholder="35202-0000000-0"
+                    className="w-full rounded-xl border border-sky-300 bg-sky-50/50 px-3 py-2 text-slate-900 font-mono outline-none focus:border-sky-600 focus:bg-white"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-slate-700 font-bold mb-1">Address *</label>
+                <textarea
+                  rows={2}
+                  value={formCust.address || ""}
+                  onChange={(e) => setFormCust({ ...formCust, address: e.target.value })}
+                  placeholder="Address / Street / Location..."
+                  className="w-full rounded-xl border border-sky-300 bg-sky-50/50 px-3 py-2 text-slate-900 font-medium outline-none focus:border-sky-600 focus:bg-white"
+                />
+              </div>
+
+              <div>
+                <label className="block text-slate-700 font-bold mb-1">Notes / Ledger Remarks</label>
+                <input
+                  type="text"
+                  value={formCust.notes || ""}
+                  onChange={(e) => setFormCust({ ...formCust, notes: e.target.value })}
+                  placeholder="Remarks..."
+                  className="w-full rounded-xl border border-sky-300 bg-sky-50/50 px-3 py-2 text-slate-900 font-medium outline-none focus:border-sky-600 focus:bg-white"
+                />
+              </div>
+
+              <div className="flex justify-end gap-2 pt-3 border-t border-sky-100">
+                <button
+                  type="button"
+                  onClick={() => setShowEditModal(false)}
+                  className="rounded-xl border border-slate-200 px-4 py-2 text-slate-700 hover:bg-slate-100 font-bold"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="rounded-xl bg-sky-600 px-5 py-2 font-bold text-white hover:bg-sky-700 shadow-md shadow-sky-600/20"
+                >
+                  Save Subscriber Changes
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
       {/* --- MODAL 3: RECORD PAYMENT --- */}
       {showPayModal && selectedUser && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 p-4 backdrop-blur-xs">

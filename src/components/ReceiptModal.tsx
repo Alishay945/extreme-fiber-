@@ -2,7 +2,9 @@
 
 import React from "react";
 import { useWisp } from "@/context/WispContext";
-import { CheckCircle2, Printer, X, Wifi, ShieldCheck, AlertCircle } from "lucide-react";
+import { Printer, X, ShieldCheck, MessageCircle } from "lucide-react";
+
+import AuthorizedStamp from "@/components/AuthorizedStamp";
 
 export default function ReceiptModal() {
   const { selectedReceipt, setSelectedReceipt, customers } = useWisp();
@@ -15,62 +17,104 @@ export default function ReceiptModal() {
     window.print();
   };
 
+  const handleSendWhatsApp = () => {
+    const rawPhone = customer?.phone || "";
+    let cleanPhone = rawPhone.replace(/\D/g, "");
+    if (cleanPhone.startsWith("0")) {
+      cleanPhone = "92" + cleanPhone.substring(1);
+    }
+
+    const messageText = `🧾 *EXTREME FIBER (SMC-PVT) LTD*
+*OFFICIAL INVOICE RECEIPT*
+
+*Receipt No:* ${selectedReceipt.receiptNumber.replace(/^#/, "")}
+*Date:* ${selectedReceipt.paymentDate}
+*Customer Name:* ${selectedReceipt.customerName}
+*Phone:* ${customer?.phone || "N/A"}
+*Address:* ${customer?.address || customer?.area || "N/A"}
+
+----------------------------------------
+*Service Plan:* Internet Package (${selectedReceipt.packageName || "Package"})
+*Month:* ${selectedReceipt.paymentMonth}
+*Total Amount:* PKR ${selectedReceipt.monthlyDues.toLocaleString()}
+*Paid Amount:* PKR ${selectedReceipt.amountPaid.toLocaleString()}
+*Balance:* PKR ${selectedReceipt.remainingDues.toLocaleString()}
+*Payment Method:* ${selectedReceipt.paymentMethod}
+*Received By:* ${selectedReceipt.receivedBy || "Faraz Ahmed"}
+----------------------------------------
+Thank you for choosing Extreme Fiber!
+Helpdesk: 0313 2171069 | 0303 2810006`;
+
+    const encodedMsg = encodeURIComponent(messageText);
+    const waUrl = cleanPhone
+      ? `https://api.whatsapp.com/send?phone=${cleanPhone}&text=${encodedMsg}`
+      : `https://api.whatsapp.com/send?text=${encodedMsg}`;
+
+    window.open(waUrl, "_blank");
+  };
+
   return (
     <div
       id="printable-receipt-backdrop"
-      className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/70 p-4 backdrop-blur-xs print:bg-white print:p-0 print:static print:inset-auto print:block"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/70 p-4 backdrop-blur-xs print:bg-white print:p-0 print:fixed print:inset-0 print:block"
     >
       <style jsx global>{`
         @media print {
           @page {
             size: A4 portrait;
-            margin: 8mm;
+            margin: 4mm;
           }
           html, body {
+            height: 100% !important;
+            max-height: 100vh !important;
+            overflow: hidden !important;
             margin: 0 !important;
             padding: 0 !important;
             background: #ffffff !important;
             color: #000000 !important;
-            height: auto !important;
-            min-height: 0 !important;
-            overflow: visible !important;
           }
           body > * {
-            visibility: hidden !important;
+            display: none !important;
           }
           #printable-receipt-backdrop {
-            position: absolute !important;
-            left: 0 !important;
+            display: flex !important;
+            position: fixed !important;
             top: 0 !important;
-            width: 100% !important;
-            height: auto !important;
+            left: 0 !important;
+            width: 100vw !important;
+            height: 100vh !important;
+            max-height: 100vh !important;
+            overflow: hidden !important;
             background: #ffffff !important;
             padding: 0 !important;
             margin: 0 !important;
-            display: block !important;
+            align-items: flex-start !important;
+            justify-content: center !important;
             visibility: visible !important;
-            box-shadow: none !important;
+            page-break-after: avoid !important;
+            break-after: avoid !important;
+            page-break-before: avoid !important;
+            break-before: avoid !important;
+            page-break-inside: avoid !important;
+            break-inside: avoid !important;
           }
-          #printable-receipt-container,
-          #printable-receipt-container * {
+          #printable-receipt-backdrop * {
             visibility: visible !important;
           }
           #printable-receipt-container {
             position: relative !important;
-            left: 0 !important;
             top: 0 !important;
-            width: 100% !important;
-            max-width: 100% !important;
+            left: 0 !important;
+            width: 98% !important;
+            max-width: 98% !important;
             margin: 0 auto !important;
-            padding: 12px !important;
+            padding: 10px !important;
             background: #ffffff !important;
             color: #000000 !important;
             box-shadow: none !important;
-            border: 1px solid #94a3b8 !important;
+            border: 1.5px solid #000000 !important;
             page-break-inside: avoid !important;
             break-inside: avoid !important;
-            page-break-after: avoid !important;
-            break-after: avoid !important;
           }
           .print\:hidden {
             display: none !important;
@@ -80,22 +124,34 @@ export default function ReceiptModal() {
 
       <div
         id="printable-receipt-container"
-        className="relative w-full max-w-lg rounded-2xl border border-sky-200 bg-white p-6 shadow-2xl text-slate-900"
+        className="relative w-full max-w-3xl rounded-xl border border-slate-300 bg-white p-6 shadow-2xl text-slate-900 overflow-hidden"
       >
         {/* Modal Header Controls - Hidden during print */}
-        <div className="mb-4 flex items-center justify-between border-b border-sky-100 pb-4 print:hidden">
+        <div className="mb-4 flex flex-wrap items-center justify-between gap-2 border-b border-slate-200 pb-3 print:hidden">
           <div className="flex items-center gap-2">
-            <ShieldCheck className="h-5 w-5 text-emerald-600" />
-            <h3 className="font-bold text-slate-900 text-sm">Official Payment Receipt (Single Copy)</h3>
+            <ShieldCheck className="h-5 w-5 text-red-700" />
+            <h3 className="font-bold text-slate-900 text-sm">Official Extreme Fiber Invoice Slip</h3>
           </div>
           <div className="flex items-center gap-2">
+            {/* WhatsApp Direct Send Button */}
+            <button
+              onClick={handleSendWhatsApp}
+              className="flex items-center gap-1.5 rounded-xl bg-emerald-600 px-3.5 py-1.5 text-xs font-bold text-white shadow-md transition hover:bg-emerald-700"
+              title="Send digital receipt text directly to customer's WhatsApp"
+            >
+              <MessageCircle className="h-4 w-4" />
+              Send to WhatsApp
+            </button>
+
+            {/* Single Page Print Button */}
             <button
               onClick={handlePrint}
-              className="flex items-center gap-1.5 rounded-xl bg-sky-600 px-3.5 py-1.5 text-xs font-bold text-white shadow-sm transition hover:bg-sky-700"
+              className="flex items-center gap-1.5 rounded-xl bg-red-700 px-4 py-1.5 text-xs font-bold text-white shadow-md transition hover:bg-red-800"
             >
               <Printer className="h-4 w-4" />
-              Print Single Receipt
+              Print Receipt (1 Page)
             </button>
+
             <button
               onClick={() => setSelectedReceipt(null)}
               className="rounded-xl border border-slate-200 p-1.5 text-slate-500 transition hover:bg-slate-100 hover:text-slate-900"
@@ -105,121 +161,188 @@ export default function ReceiptModal() {
           </div>
         </div>
 
-        {/* Printable Receipt Content */}
-        <div className="space-y-4 text-slate-900">
-          {/* Brand Header */}
-          <div className="flex items-start justify-between border-b border-slate-300 pb-4">
+        {/* Printable Physical Slip Container */}
+        <div className="relative border-2 border-slate-800 bg-white p-4 sm:p-5 text-slate-900 rounded-sm">
+          {/* Top Maroon Accent Line */}
+          <div className="h-1 bg-[#800000] -mx-4 sm:-mx-5 -mt-4 sm:-mt-5 mb-3"></div>
+
+          {/* 1. Header Section */}
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 pb-2">
+            {/* Left: Logo & Red Stamped Number */}
             <div className="flex items-center gap-3">
-              <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-sky-600 text-white font-black text-xl shadow-md">
-                <Wifi className="h-7 w-7" />
+              <div className="flex items-center">
+                <svg viewBox="0 0 240 75" className="h-12 w-auto">
+                  {/* Outer Black Arc */}
+                  <path d="M 45 10 C 12 10, 8 65, 45 65" fill="none" stroke="#111827" strokeWidth="8" strokeLinecap="round" />
+                  {/* Inner Red Swoosh */}
+                  <path d="M 50 20 C 24 22, 22 55, 60 50 C 78 48, 88 35, 82 25 C 78 16, 62 18, 50 20 Z" fill="#b91c1c" />
+                  {/* Fiber Cable Tip & Glow Rays */}
+                  <ellipse cx="72" cy="35" rx="7" ry="4" fill="#f87171" transform="rotate(-20 72 35)" />
+                  <line x1="80" y1="32" x2="92" y2="28" stroke="#b91c1c" strokeWidth="2.5" strokeLinecap="round" />
+                  <line x1="82" y1="35" x2="95" y2="35" stroke="#b91c1c" strokeWidth="2.5" strokeLinecap="round" />
+                  <line x1="80" y1="38" x2="92" y2="42" stroke="#b91c1c" strokeWidth="2.5" strokeLinecap="round" />
+                  {/* Text EXTREME FIBER */}
+                  <text x="98" y="35" fill="#111827" fontSize="26" fontWeight="900" fontFamily="sans-serif" letterSpacing="0.5">EXTREME</text>
+                  <text x="100" y="54" fill="#111827" fontSize="18" fontWeight="800" fontFamily="sans-serif" letterSpacing="3">FIBER</text>
+                </svg>
               </div>
-              <div>
-                <h2 className="text-xl font-black tracking-tight text-slate-900">
-                  EXTREME FIBER
-                </h2>
-                <p className="text-xs text-sky-700 font-extrabold">
-                  High Speed Optical Fiber Network
-                </p>
-                <p className="text-[10px] text-slate-600 font-medium">
-                  Helpdesk: 0300-888-FIBER | Receipt Voucher
-                </p>
+
+              {/* Red Stamped Receipt Number */}
+              <div className="ml-1 text-red-600 font-mono font-extrabold text-xl tracking-wide opacity-90 underline decoration-red-400">
+                {selectedReceipt.receiptNumber.replace(/^#/, "")}
               </div>
             </div>
-            <div className="text-right">
-              <div className="inline-block rounded-lg bg-sky-100 border border-sky-300 px-2.5 py-1 text-xs font-mono font-bold text-sky-900">
-                #{selectedReceipt.receiptNumber}
-              </div>
-              <p className="mt-1 text-[11px] text-slate-600 font-semibold">
-                Date: {selectedReceipt.paymentDate}
+
+            {/* Right: Company Info & Contacts */}
+            <div className="text-left sm:text-right text-xs leading-snug font-sans">
+              <h2 className="text-sm sm:text-base font-black tracking-tight text-slate-900">
+                EXTREME FIBER <span className="text-xs font-bold text-slate-700">(SMC-PVT) LTD</span>
+              </h2>
+              <p className="text-xs font-bold italic text-[#a81c1c]">
+                Internet Services Provider
+              </p>
+              <p className="mt-1 text-[11px] font-bold text-[#614d18]">
+                • Faraz Ahmed: <span className="font-extrabold text-slate-900">0313 2171069</span>
+              </p>
+              <p className="text-[11px] font-bold text-[#614d18]">
+                • Shayan Ahmed: <span className="font-extrabold text-slate-900">0303 2810006</span>
               </p>
             </div>
           </div>
 
-          {/* Customer & Subscriber Info */}
-          <div className="grid grid-cols-2 gap-3 rounded-xl border border-slate-300 bg-slate-50 p-3.5 text-xs">
-            <div>
-              <p className="text-slate-500 font-extrabold uppercase tracking-wider text-[10px]">
-                Subscriber Info
-              </p>
-              <p className="mt-1 font-black text-slate-900 text-sm">
-                {selectedReceipt.customerName}
-              </p>
-              <p className="mt-0.5 text-sky-800 font-mono font-bold">
-                User ID: {selectedReceipt.customerId}
-              </p>
-              {customer && (
-                <>
-                  <p className="mt-0.5 text-slate-700 font-semibold">Phone: {customer.phone}</p>
-                  <p className="mt-0.5 text-slate-600 font-medium">Sector: {customer.area}</p>
-                </>
-              )}
-            </div>
-            <div className="text-right">
-              <p className="text-slate-500 font-extrabold uppercase tracking-wider text-[10px]">
-                Billing Details
-              </p>
-              <p className="mt-1 font-bold text-slate-900">
-                Month: <span className="text-sky-900 font-black">{selectedReceipt.paymentMonth}</span>
-              </p>
-              <p className="mt-0.5 text-slate-700 font-medium">
-                Plan: {selectedReceipt.packageName}
-              </p>
-              <p className="mt-0.5 text-slate-700 font-medium">
-                Method: {selectedReceipt.paymentMethod}
-              </p>
-              <p className="mt-0.5 text-slate-600 font-semibold">
-                By: {selectedReceipt.receivedBy}
-              </p>
-            </div>
+          {/* 2. Maroon Divider Bar */}
+          <div className="my-2.5 bg-[#800000] py-1 px-4 text-center text-white font-black text-xs sm:text-sm tracking-widest uppercase shadow-xs">
+            ———— INVOICE RECEIPT ————
           </div>
 
-          {/* FINANCIAL SUMMARY BOX: TOTAL BILL, MONEY RECEIVED, REMAINING DUES */}
-          <div className="rounded-xl border-2 border-slate-300 bg-sky-50/50 p-3 space-y-2">
-            <div className="text-[11px] font-extrabold uppercase tracking-wider text-slate-700 text-center border-b border-slate-200 pb-1">
-              Financial Payment Summary (Hisab Kitab)
-            </div>
-
-            <div className="grid grid-cols-3 gap-2 text-center text-xs">
-              <div className="bg-white p-2 rounded-lg border border-slate-300">
-                <span className="text-[10px] text-slate-500 font-bold uppercase block">1. Total Bill</span>
-                <span className="text-sm font-black font-mono text-slate-900">
-                  PKR {selectedReceipt.monthlyDues.toLocaleString()}
+          {/* 3. Slip Content Body (Left Fields & Right Table) */}
+          <div className="grid grid-cols-1 md:grid-cols-12 gap-4 text-xs font-medium text-slate-900 my-3">
+            {/* Left Column: Customer Details (5 cols) */}
+            <div className="md:col-span-6 space-y-3 pr-0 md:pr-2">
+              <div className="flex items-baseline gap-2">
+                <span className="font-bold text-slate-900 min-w-[110px]">Date:</span>
+                <span className="flex-1 border-b border-slate-600 font-mono font-extrabold text-slate-900 pb-0.5 px-1">
+                  {selectedReceipt.paymentDate}
                 </span>
               </div>
 
-              <div className="bg-emerald-50 p-2 rounded-lg border border-emerald-300">
-                <span className="text-[10px] text-emerald-800 font-bold uppercase block">2. Money Paid (Wasool)</span>
-                <span className="text-sm font-black font-mono text-emerald-700">
-                  PKR {selectedReceipt.amountPaid.toLocaleString()}
+              <div className="flex items-baseline gap-2">
+                <span className="font-bold text-slate-900 min-w-[110px]">Customer Name:</span>
+                <span className="flex-1 border-b border-slate-600 font-black text-slate-900 pb-0.5 px-1 text-sm">
+                  {selectedReceipt.customerName}
                 </span>
               </div>
 
-              <div className={`p-2 rounded-lg border ${selectedReceipt.remainingDues > 0 ? "bg-amber-50 border-amber-300 text-amber-900" : "bg-slate-100 border-slate-300 text-slate-700"}`}>
-                <span className="text-[10px] font-bold uppercase block">3. Remaining (Baqaya)</span>
-                <span className="text-sm font-black font-mono">
-                  PKR {selectedReceipt.remainingDues.toLocaleString()}
+              <div className="flex items-baseline gap-2">
+                <span className="font-bold text-slate-900 min-w-[110px]">Phone:</span>
+                <span className="flex-1 border-b border-slate-600 font-mono font-bold text-slate-900 pb-0.5 px-1">
+                  {customer?.phone || "03XX-XXXXXXX"}
+                </span>
+              </div>
+
+              <div className="flex items-baseline gap-2">
+                <span className="font-bold text-slate-900 min-w-[110px]">Address:</span>
+                <span className="flex-1 border-b border-slate-600 font-semibold text-slate-900 pb-0.5 px-1">
+                  {customer?.address || customer?.area || "N/A"}
+                </span>
+              </div>
+
+              <div className="pt-1">
+                <span className="font-bold text-slate-900 block mb-1">Payment Method:</span>
+                <div className="flex flex-wrap items-center gap-1.5 text-[11px] font-semibold text-slate-800 border-b border-slate-600 pb-1">
+                  {["Cash", "Bank", "Easypaisa", "JazzCash"].map((method) => {
+                    const isSelected =
+                      selectedReceipt.paymentMethod?.toLowerCase().includes(method.toLowerCase()) ||
+                      (method === "Bank" && selectedReceipt.paymentMethod?.toLowerCase().includes("transfer"));
+                    return (
+                      <span
+                        key={method}
+                        className={`px-1.5 py-0.5 rounded ${
+                          isSelected
+                            ? "bg-slate-900 text-white font-extrabold underline"
+                            : "text-slate-600"
+                        }`}
+                      >
+                        {isSelected ? `✓ ${method}` : method}
+                        {method !== "JazzCash" && <span className="ml-1 text-slate-400 font-normal">/</span>}
+                      </span>
+                    );
+                  })}
+                </div>
+              </div>
+            </div>
+
+            {/* Right Column: Table Dues & Received (6 cols) */}
+            <div className="md:col-span-6 flex flex-col justify-between space-y-3">
+              <table className="w-full border-collapse border border-slate-800 text-xs">
+                <thead>
+                  <tr className="bg-[#4e4e54] text-white">
+                    <th className="border border-slate-700 px-2 py-1.5 text-left font-bold w-5/12">Service Plan</th>
+                    <th className="border border-slate-700 px-2 py-1.5 text-center font-bold w-3/12">Month</th>
+                    <th className="border border-slate-700 px-2 py-1.5 text-right font-bold w-4/12">Amount (PKR)</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-400">
+                  <tr>
+                    <td className="border border-slate-600 px-2 py-1.5 font-bold text-slate-900">
+                      Internet Package
+                    </td>
+                    <td className="border border-slate-600 px-2 py-1.5 text-center font-semibold text-slate-900">
+                      {selectedReceipt.paymentMonth}
+                    </td>
+                    <td className="border border-slate-600 px-2 py-1.5 text-right font-mono font-bold text-slate-900">
+                      {selectedReceipt.monthlyDues.toLocaleString()}
+                    </td>
+                  </tr>
+                  <tr>
+                    <td className="border border-slate-600 px-2 py-1.5 font-bold text-slate-900">Total Amount</td>
+                    <td className="border border-slate-600 px-2 py-1.5"></td>
+                    <td className="border border-slate-600 px-2 py-1.5 text-right font-mono font-bold text-slate-900">
+                      {selectedReceipt.monthlyDues.toLocaleString()}
+                    </td>
+                  </tr>
+                  <tr>
+                    <td className="border border-slate-600 px-2 py-1.5 font-bold text-slate-900">Paid Amount</td>
+                    <td className="border border-slate-600 px-2 py-1.5"></td>
+                    <td className="border border-slate-600 px-2 py-1.5 text-right font-mono font-black text-emerald-800">
+                      {selectedReceipt.amountPaid.toLocaleString()}
+                    </td>
+                  </tr>
+                  <tr>
+                    <td className="border border-slate-600 px-2 py-1.5 font-bold text-slate-900">Balance</td>
+                    <td className="border border-slate-600 px-2 py-1.5"></td>
+                    <td className={`border border-slate-600 px-2 py-1.5 text-right font-mono font-black ${selectedReceipt.remainingDues > 0 ? "text-red-700" : "text-slate-900"}`}>
+                      {selectedReceipt.remainingDues.toLocaleString()}
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+
+              {/* Received Line */}
+              <div className="text-right pt-2">
+                <span className="font-bold text-slate-900 text-xs">Received: </span>
+                <span className="inline-block border-b border-slate-700 min-w-[160px] text-center font-extrabold text-slate-900 px-2 pb-0.5">
+                  {selectedReceipt.receivedBy || "Faraz Ahmed"}
                 </span>
               </div>
             </div>
           </div>
 
-          {/* Stamp & Verification */}
-          <div className="flex items-center justify-between pt-1">
-            <div className="rounded-xl border-2 border-dashed border-emerald-600 bg-emerald-50 px-4 py-1.5 text-center rotate-[-2deg]">
-              <span className="text-xs font-black uppercase tracking-widest text-emerald-800">
-                {selectedReceipt.remainingDues === 0 ? "PAID IN FULL" : "PARTIAL PAYMENT"}
-              </span>
-              <p className="text-[9px] text-emerald-700 font-bold">Extreme Fiber Verified</p>
-            </div>
-            <div className="text-right text-[11px] text-slate-600 font-semibold">
-              <div className="h-6 border-b border-slate-400 w-28 ml-auto mb-1"></div>
-              <p>Authorized Receiver Stamp</p>
-            </div>
+          {/* 4. Footer Banner & Accent */}
+          <div className="mt-4 pt-1.5 pb-1.5 border-t border-b-2 border-[#800000] text-center text-[11px] font-bold text-slate-900 tracking-tight">
+            Thank you for choosing Extreme Fiber • Fast • Reliable • Unlimited Internet
           </div>
 
-          <div className="border-t border-slate-300 pt-2 text-center text-[10px] text-slate-600 font-semibold">
-            Thank you for choosing Extreme Fiber. Please clear all monthly dues by the 10th of every month.
-          </div>
+          {/* Bottom Accent Double Line */}
+          <div className="h-0.5 bg-[#800000] mt-1 -mx-4 sm:-mx-5"></div>
+
+          {/* Floating Official Layer Stamp */}
+          <AuthorizedStamp
+            receiptNumber={`#${selectedReceipt.receiptNumber}`}
+            date={selectedReceipt.paymentDate}
+            receiverName={selectedReceipt.receivedBy || "Faraz"}
+            className="-bottom-4 -right-2 opacity-85"
+          />
         </div>
       </div>
     </div>

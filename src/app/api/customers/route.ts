@@ -3,13 +3,22 @@ import dbConnect from "@/lib/dbConnect";
 import Customer from "@/models/Customer";
 import initialData from "@/data/initialData.json";
 
+export const dynamic = "force-dynamic";
+
 export async function GET() {
   try {
     await dbConnect();
-    const customers = await Customer.find({}).sort({ createdAt: -1 }).exec();
+    let customers = await Customer.find({}).sort({ createdAt: -1 }).exec();
 
     if (!customers || customers.length === 0) {
-      return NextResponse.json({ customers: initialData.customers, source: "seed" });
+      console.log("Database empty. Auto-seeding 511 subscribers into MongoDB Atlas...");
+      try {
+        await Customer.insertMany(initialData.customers, { ordered: false });
+        customers = await Customer.find({}).sort({ createdAt: -1 }).exec();
+      } catch (seedErr) {
+        console.warn("Seed partial warning:", seedErr);
+        customers = await Customer.find({}).sort({ createdAt: -1 }).exec();
+      }
     }
 
     return NextResponse.json({ customers, source: "mongodb" });
@@ -105,11 +114,14 @@ export async function PUT(request: Request) {
       { $or: [{ id: id }, { accountNo: id }] },
       {
         $set: {
+          id: id,
+          accountNo: id,
           name: body.name,
           phone: body.phone,
           cnic: body.cnic,
           address: body.address,
           area: body.area,
+          sector: body.area,
           packageId: body.packageId,
           packageName: body.packageName,
           monthlyFee: body.monthlyFee,
@@ -119,7 +131,7 @@ export async function PUT(request: Request) {
           notes: body.notes,
         },
       },
-      { new: true }
+      { new: true, upsert: true }
     );
 
     return NextResponse.json({ success: true, customer: updated });

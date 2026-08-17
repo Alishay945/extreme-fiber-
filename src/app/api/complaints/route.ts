@@ -33,6 +33,8 @@ const seedComplaints = [
   },
 ];
 
+export const dynamic = "force-dynamic";
+
 export async function GET() {
   try {
     const client = await clientPromise;

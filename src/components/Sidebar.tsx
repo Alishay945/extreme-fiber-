@@ -14,6 +14,7 @@ import {
   DollarSign,
   MapPin,
   X,
+  Banknote,
 } from "lucide-react";
 import { useWisp } from "@/context/WispContext";
 
@@ -32,6 +33,7 @@ export default function Sidebar({ isOpen = false, onClose }: SidebarProps) {
 
   const openComplaintsCount = complaints.filter((c) => c.status === "Open" || c.status === "In Progress").length;
   const pendingChoresCount = dailyChores.filter((d) => d.status === "Pending" || d.status === "In Progress").length;
+  const pendingUsersCount = customers.filter((c) => c.dueAmount > 0 || c.status === "Overdue" || c.status === "Pending").length;
 
   const navItems = [
     {
@@ -50,6 +52,13 @@ export default function Sidebar({ isOpen = false, onClose }: SidebarProps) {
       href: "/payments",
       label: "Payments & Ledger",
       icon: CreditCard,
+    },
+    {
+      href: "/cash-ledger",
+      label: "Cash & Pending Ledger",
+      icon: Banknote,
+      badge: pendingUsersCount > 0 ? `${pendingUsersCount} Due` : undefined,
+      badgeTone: "rose",
     },
     {
       href: "/daily-chores",

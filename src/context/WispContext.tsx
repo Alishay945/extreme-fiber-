@@ -173,6 +173,24 @@ interface WispContextType {
   addDailyChore: (data: Omit<DailyChore, "id" | "createdAt">) => void;
   updateDailyChoreStatus: (id: string, status: DailyChoreStatus) => void;
   deleteDailyChore: (id: string) => void;
+  // Staff Actions
+  addStaff: (data: Omit<Staff, "id" | "activeTicketsCount" | "todayCollections">) => void;
+  updateStaff: (data: Staff) => void;
+  deleteStaff: (id: string) => void;
+  // Bulk Import
+  importBulkCustomers: (items: Array<{
+    name: string;
+    phone?: string;
+    cnic?: string;
+    address?: string;
+    area?: string;
+    packageName?: string;
+    monthlyFee?: number;
+    status?: CustomerStatus;
+    dueAmount?: number;
+    paidAmount?: number;
+    isPaid?: boolean;
+  }>) => { added: number; updated: number; paid: number; unpaid: number };
   // Package Actions
   addPackage: (pkg: Omit<Package, "id" | "subscriberCount">) => void;
 }
@@ -220,7 +238,13 @@ export const WispProvider: React.FC<{ children: React.ReactNode }> = ({ children
     return initialDailyChores;
   });
 
-  const [staff, setStaff] = useState<Staff[]>(initialStaff);
+  const [staff, setStaff] = useState<Staff[]>(() => {
+    if (typeof window !== "undefined") {
+      const saved = localStorage.getItem("ef_wisp_staff");
+      if (saved) try { return JSON.parse(saved); } catch (e) {}
+    }
+    return initialStaff;
+  });
   const [selectedReceipt, setSelectedReceipt] = useState<Payment | null>(null);
 
   // Fetch from MongoDB Atlas on mount if available
@@ -265,6 +289,12 @@ export const WispProvider: React.FC<{ children: React.ReactNode }> = ({ children
       localStorage.setItem("ef_wisp_daily_chores", JSON.stringify(dailyChores));
     }
   }, [dailyChores]);
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      localStorage.setItem("ef_wisp_staff", JSON.stringify(staff));
+    }
+  }, [staff]);
 
   useEffect(() => {
     if (typeof window !== "undefined") {
@@ -494,6 +524,170 @@ export const WispProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setPackages((prev) => [...prev, newPkg]);
   };
 
+  const addStaff = (data: Omit<Staff, "id" | "activeTicketsCount" | "todayCollections">) => {
+    const nextNum = staff.length + 1;
+    const newMember: Staff = {
+      ...data,
+      id: `STF-${String(nextNum).padStart(2, "0")}`,
+      activeTicketsCount: 0,
+      todayCollections: 0,
+    };
+    setStaff((prev) => [...prev, newMember]);
+  };
+
+  const updateStaff = (updated: Staff) => {
+    setStaff((prev) => prev.map((s) => (s.id === updated.id ? updated : s)));
+  };
+
+  const deleteStaff = (id: string) => {
+    setStaff((prev) => prev.filter((s) => s.id !== id));
+  };
+
+  const importBulkCustomers = (
+    items: Array<{
+      name: string;
+      phone?: string;
+      cnic?: string;
+      address?: string;
+      area?: string;
+      packageName?: string;
+      monthlyFee?: number;
+      status?: CustomerStatus;
+      dueAmount?: number;
+      paidAmount?: number;
+      isPaid?: boolean;
+    }>
+  ) => {
+    let added = 0;
+    let updated = 0;
+    let paid = 0;
+    let unpaid = 0;
+
+    let updatedCustomersList = [...customers];
+    let newPayments: Payment[] = [];
+
+    const todayStr = new Date().toISOString().split("T")[0];
+    const monthStr = new Date().toLocaleString("en-US", { month: "long", year: "numeric" });
+
+    items.forEach((item) => {
+      const cleanName = item.name ? item.name.trim() : "";
+      if (!cleanName) return;
+
+      const matchedIndex = updatedCustomersList.findIndex((c) => {
+        if (c.name.toLowerCase() === cleanName.toLowerCase()) return true;
+        if (item.phone && c.phone && c.phone.replace(/\D/g, "") === item.phone.replace(/\D/g, "") && item.phone.replace(/\D/g, "").length >= 7) return true;
+        if (item.cnic && c.cnic && c.cnic.replace(/\D/g, "") === item.cnic.replace(/\D/g, "") && item.cnic.replace(/\D/g, "").length >= 7) return true;
+        return false;
+      });
+
+      const matchedPkg = packages.find(
+        (p) => item.packageName && p.name.toLowerCase().includes(item.packageName.toLowerCase())
+      ) || packages[0];
+
+      const monthlyPrice = item.monthlyFee && item.monthlyFee > 0 ? item.monthlyFee : matchedPkg.monthlyPrice;
+      const isPaid = item.isPaid || (item.paidAmount !== undefined && item.paidAmount >= monthlyPrice) || item.status === "Active";
+      const paidAmt = item.paidAmount !== undefined ? item.paidAmount : (isPaid ? monthlyPrice : 0);
+      const remainingDue = item.dueAmount !== undefined ? item.dueAmount : Math.max(0, monthlyPrice - paidAmt);
+      const finalStatus: CustomerStatus = item.status || (remainingDue === 0 ? "Active" : "Overdue");
+
+      if (isPaid || paidAmt > 0) {
+        paid++;
+      } else {
+        unpaid++;
+      }
+
+      if (matchedIndex !== -1) {
+        // Update existing customer
+        updated++;
+        const existing = updatedCustomersList[matchedIndex];
+        const newDue = Math.max(0, existing.dueAmount - paidAmt);
+        updatedCustomersList[matchedIndex] = {
+          ...existing,
+          name: cleanName || existing.name,
+          phone: item.phone || existing.phone,
+          cnic: item.cnic || existing.cnic,
+          address: item.address || existing.address,
+          area: item.area || existing.area,
+          packageName: matchedPkg.name,
+          packageId: matchedPkg.id,
+          monthlyFee: monthlyPrice,
+          dueAmount: remainingDue !== undefined ? remainingDue : newDue,
+          status: finalStatus,
+          lastPaymentDate: paidAmt > 0 ? todayStr : existing.lastPaymentDate,
+        };
+
+        if (paidAmt > 0) {
+          const payId = `PAY-${payments.length + newPayments.length + 8005}`;
+          const recNum = `REC-${new Date().getFullYear()}-${Math.floor(1000 + Math.random() * 9000)}`;
+          newPayments.push({
+            id: payId,
+            customerId: existing.id,
+            customerName: cleanName,
+            packageName: matchedPkg.name,
+            amountPaid: paidAmt,
+            monthlyDues: monthlyPrice,
+            remainingDues: remainingDue,
+            paymentMonth: monthStr,
+            paymentDate: todayStr,
+            paymentMethod: "Cash",
+            receivedBy: "Excel Import Tool",
+            status: remainingDue === 0 ? "Paid" : "Partial",
+            receiptNumber: recNum,
+          });
+        }
+      } else {
+        // Add new customer
+        added++;
+        const nextIdNum = updatedCustomersList.length + 1001;
+        const newId = `EF-${nextIdNum}`;
+        const newCust: Customer = {
+          id: newId,
+          name: cleanName,
+          phone: item.phone || "0300-0000000",
+          cnic: item.cnic || "35202-0000000-0",
+          address: item.address || "General Address",
+          area: item.area || "Saeela",
+          packageId: matchedPkg.id,
+          packageName: matchedPkg.name,
+          monthlyFee: monthlyPrice,
+          status: finalStatus,
+          installationDate: todayStr,
+          dueAmount: remainingDue,
+          lastPaymentDate: paidAmt > 0 ? todayStr : undefined,
+          notes: "Imported via Excel Sync Tool",
+        };
+        updatedCustomersList.unshift(newCust);
+
+        if (paidAmt > 0) {
+          const payId = `PAY-${payments.length + newPayments.length + 8005}`;
+          const recNum = `REC-${new Date().getFullYear()}-${Math.floor(1000 + Math.random() * 9000)}`;
+          newPayments.push({
+            id: payId,
+            customerId: newId,
+            customerName: cleanName,
+            packageName: matchedPkg.name,
+            amountPaid: paidAmt,
+            monthlyDues: monthlyPrice,
+            remainingDues: remainingDue,
+            paymentMonth: monthStr,
+            paymentDate: todayStr,
+            paymentMethod: "Cash",
+            receivedBy: "Excel Import Tool",
+            status: remainingDue === 0 ? "Paid" : "Partial",
+            receiptNumber: recNum,
+          });
+        }
+      }
+    });
+
+    setCustomers(updatedCustomersList);
+    if (newPayments.length > 0) {
+      setPayments((prev) => [...newPayments, ...prev]);
+    }
+
+    return { added, updated, paid, unpaid };
+  };
+
   return (
     <WispContext.Provider
       value={{
@@ -516,6 +710,10 @@ export const WispProvider: React.FC<{ children: React.ReactNode }> = ({ children
         updateDailyChoreStatus,
         deleteDailyChore,
         addPackage,
+        addStaff,
+        updateStaff,
+        deleteStaff,
+        importBulkCustomers,
       }}
     >
       {children}

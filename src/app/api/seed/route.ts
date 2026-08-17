@@ -2,6 +2,12 @@ import { NextResponse } from "next/server";
 import clientPromise from "@/lib/mongodb";
 import initialData from "@/data/initialData.json";
 
+export const dynamic = "force-dynamic";
+
+export async function GET() {
+  return NextResponse.json({ message: "Use POST to trigger database seed." });
+}
+
 export async function POST() {
   try {
     const client = await clientPromise;
