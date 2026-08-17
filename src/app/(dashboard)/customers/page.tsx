@@ -31,7 +31,7 @@ import {
   MessageCircle,
   ExternalLink,
 } from "lucide-react";
-import { Customer, CustomerStatus } from "@/types/wisp";
+import { Customer, CustomerStatus, PaymentMethod } from "@/types/wisp";
 import * as XLSX from "xlsx";
 import QuickPhoneWhatsAppModal from "@/components/QuickPhoneWhatsAppModal";
 
@@ -89,6 +89,7 @@ export default function CustomersPage() {
 
   const [payAmount, setPayAmount] = useState<number>(2500);
   const [payMonth, setPayMonth] = useState<string>("August 2026");
+  const [payMethod, setPayMethod] = useState<PaymentMethod>("Cash");
 
   // --- LOCATION STATS & COUNTS ---
   const saeelaCustomers = customers.filter((c) => c.area === "Saeela");
@@ -208,7 +209,7 @@ export default function CustomersPage() {
       customerId: selectedUser.id,
       amountPaid: payAmount,
       paymentMonth: payMonth,
-      paymentMethod: "Cash",
+      paymentMethod: payMethod,
       receivedBy: "Reception Office",
     });
     setShowPayModal(false);
@@ -1367,6 +1368,20 @@ export default function CustomersPage() {
                   placeholder="August 2026"
                   className="w-full rounded-xl border border-sky-300 bg-sky-50/50 px-3 py-2 text-slate-900 font-medium outline-none focus:border-sky-600"
                 />
+              </div>
+
+              <div>
+                <label className="block text-slate-700 font-bold mb-1">Payment Method *</label>
+                <select
+                  value={payMethod}
+                  onChange={(e) => setPayMethod(e.target.value as PaymentMethod)}
+                  className="w-full rounded-xl border border-sky-300 bg-sky-50/50 px-3 py-2 text-slate-900 font-semibold outline-none focus:border-sky-600 focus:bg-white"
+                >
+                  <option value="Cash">💵 Cash</option>
+                  <option value="EasyPaisa">📱 EasyPaisa</option>
+                  <option value="JazzCash">📲 JazzCash</option>
+                  <option value="Bank Transfer">🏦 Bank Transfer Account</option>
+                </select>
               </div>
 
               <div className="flex justify-end gap-2 pt-3 border-t border-sky-100">
