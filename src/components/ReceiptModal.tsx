@@ -273,8 +273,8 @@ Helpdesk: 0313 2171069 | 0303 2810006`;
             </div>
 
             {/* Right Column: Table Dues & Received (6 cols) */}
-            <div className="md:col-span-6 flex flex-col justify-between space-y-3">
-              <table className="w-full border-collapse border border-slate-800 text-xs">
+            <div className="md:col-span-6 flex flex-col justify-between space-y-3 relative z-10">
+              <table className="w-full border-collapse border border-slate-800 text-xs bg-white/95 relative z-10">
                 <thead>
                   <tr className="bg-[#4e4e54] text-white">
                     <th className="border border-slate-700 px-2 py-1.5 text-left font-bold w-5/12">Service Plan</th>
@@ -285,33 +285,33 @@ Helpdesk: 0313 2171069 | 0303 2810006`;
                 <tbody className="divide-y divide-slate-400">
                   <tr>
                     <td className="border border-slate-600 px-2 py-1.5 font-bold text-slate-900">
-                      Internet Package
+                      Internet Package ({selectedReceipt.packageName || "Fiber Plan"})
                     </td>
                     <td className="border border-slate-600 px-2 py-1.5 text-center font-semibold text-slate-900">
                       {selectedReceipt.paymentMonth}
                     </td>
                     <td className="border border-slate-600 px-2 py-1.5 text-right font-mono font-bold text-slate-900">
-                      {selectedReceipt.monthlyDues.toLocaleString()}
+                      {(selectedReceipt.monthlyDues || selectedReceipt.amountPaid).toLocaleString()}
                     </td>
                   </tr>
                   <tr>
                     <td className="border border-slate-600 px-2 py-1.5 font-bold text-slate-900">Total Amount</td>
                     <td className="border border-slate-600 px-2 py-1.5"></td>
                     <td className="border border-slate-600 px-2 py-1.5 text-right font-mono font-bold text-slate-900">
-                      {selectedReceipt.monthlyDues.toLocaleString()}
+                      {(selectedReceipt.monthlyDues || selectedReceipt.amountPaid).toLocaleString()}
                     </td>
                   </tr>
                   <tr>
                     <td className="border border-slate-600 px-2 py-1.5 font-bold text-slate-900">Paid Amount</td>
                     <td className="border border-slate-600 px-2 py-1.5"></td>
-                    <td className="border border-slate-600 px-2 py-1.5 text-right font-mono font-black text-emerald-800">
+                    <td className="border border-slate-600 px-2 py-1.5 text-right font-mono font-black text-emerald-900 bg-emerald-50/50">
                       {selectedReceipt.amountPaid.toLocaleString()}
                     </td>
                   </tr>
                   <tr>
-                    <td className="border border-slate-600 px-2 py-1.5 font-bold text-slate-900">Balance</td>
+                    <td className="border border-slate-600 px-2 py-1.5 font-bold text-slate-900">Balance Dues</td>
                     <td className="border border-slate-600 px-2 py-1.5"></td>
-                    <td className={`border border-slate-600 px-2 py-1.5 text-right font-mono font-black ${selectedReceipt.remainingDues > 0 ? "text-red-700" : "text-slate-900"}`}>
+                    <td className={`border border-slate-600 px-2 py-1.5 text-right font-mono font-black ${selectedReceipt.remainingDues > 0 ? "text-red-700 bg-red-50/50" : "text-slate-900"}`}>
                       {selectedReceipt.remainingDues.toLocaleString()}
                     </td>
                   </tr>
@@ -319,7 +319,7 @@ Helpdesk: 0313 2171069 | 0303 2810006`;
               </table>
 
               {/* Received Line */}
-              <div className="text-right pt-2">
+              <div className="text-right pt-2 relative z-10">
                 <span className="font-bold text-slate-900 text-xs">Received: </span>
                 <span className="inline-block border-b border-slate-700 min-w-[160px] text-center font-extrabold text-slate-900 px-2 pb-0.5">
                   {selectedReceipt.receivedBy || "Faraz Ahmed"}
@@ -329,19 +329,19 @@ Helpdesk: 0313 2171069 | 0303 2810006`;
           </div>
 
           {/* 4. Footer Banner & Accent */}
-          <div className="mt-4 pt-1.5 pb-1.5 border-t border-b-2 border-[#800000] text-center text-[11px] font-bold text-slate-900 tracking-tight">
+          <div className="mt-4 pt-1.5 pb-1.5 border-t border-b-2 border-[#800000] text-center text-[11px] font-bold text-slate-900 tracking-tight relative z-10 bg-white">
             Thank you for choosing Extreme Fiber • Fast • Reliable • Unlimited Internet
           </div>
 
           {/* Bottom Accent Double Line */}
-          <div className="h-0.5 bg-[#800000] mt-1 -mx-4 sm:-mx-5"></div>
+          <div className="h-0.5 bg-[#800000] mt-1 -mx-4 sm:-mx-5 relative z-10"></div>
 
           {/* Floating Official Layer Stamp */}
           <AuthorizedStamp
             receiptNumber={`#${selectedReceipt.receiptNumber}`}
             date={selectedReceipt.paymentDate}
             receiverName={selectedReceipt.receivedBy || "Faraz"}
-            className="-bottom-4 -right-2 opacity-85"
+            className="bottom-2 right-4 z-0 opacity-40"
           />
         </div>
       </div>
