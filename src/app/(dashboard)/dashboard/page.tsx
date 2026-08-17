@@ -109,7 +109,7 @@ export default function DashboardPage() {
               </div>
             </div>
             <div className="mt-3 text-3xl font-black text-emerald-700 font-mono">
-              PKR {(totalCollections / 1000).toFixed(0)}k
+              PKR {totalCollections.toLocaleString()}
             </div>
             <p className="mt-2 text-xs text-slate-500 font-semibold">{payments.length} payment receipts logged</p>
           </div>
@@ -123,7 +123,7 @@ export default function DashboardPage() {
               </div>
             </div>
             <div className="mt-3 text-3xl font-black text-amber-700 font-mono">
-              PKR {(totalDuesOutstanding / 1000).toFixed(0)}k
+              PKR {totalDuesOutstanding.toLocaleString()}
             </div>
             <p className="mt-2 text-xs text-amber-800 font-bold">Pending billing collections</p>
           </div>
