@@ -18,123 +18,16 @@ import initialData from "@/data/initialData.json";
 
 // Seed Data from Excel (511 Real Subscribers, 1403 Real Receipts)
 const initialPackages: Package[] = [
-  { id: "PKG-10M", name: "10M Fiber Plan", speedMbps: 10, monthlyPrice: 1500, description: "Basic browsing & SD streaming", subscriberCount: 85 },
-  { id: "PKG-20M", name: "20M Fiber Plan", speedMbps: 20, monthlyPrice: 2500, description: "HD streaming & home WiFi", subscriberCount: 380 },
-  { id: "PKG-50M", name: "50M Fiber Plan", speedMbps: 50, monthlyPrice: 4000, description: "Ultra-low latency gaming & 4K", subscriberCount: 46 },
-  { id: "PKG-100M", name: "100M Fiber Plan", speedMbps: 100, monthlyPrice: 7500, description: "Dedicated enterprise bandwidth", subscriberCount: 12 },
+  { id: "PKG-10M", name: "10M Fiber Plan", speedMbps: 10, monthlyPrice: 1500, description: "Basic browsing & SD streaming", subscriberCount: 0 },
+  { id: "PKG-20M", name: "20M Fiber Plan", speedMbps: 20, monthlyPrice: 2500, description: "HD streaming & home WiFi", subscriberCount: 0 },
+  { id: "PKG-50M", name: "50M Fiber Plan", speedMbps: 50, monthlyPrice: 4000, description: "Ultra-low latency gaming & 4K", subscriberCount: 0 },
+  { id: "PKG-100M", name: "100M Fiber Plan", speedMbps: 100, monthlyPrice: 7500, description: "Dedicated enterprise bandwidth", subscriberCount: 0 },
 ];
 
-const initialCustomers: Customer[] = initialData.customers as Customer[];
-const initialPayments: Payment[] = initialData.payments as Payment[];
-
-const initialComplaints: Complaint[] = [
-  {
-    id: "TKT-501",
-    customerId: "EF-1002",
-    customerName: "Muhammad Usman",
-    phone: "0312-9876543",
-    address: "Flat 4A, Al-Rehman Plaza",
-    category: "No Internet",
-    description: "Red optical light blinking on fiber ONU modem after thunderstorm.",
-    priority: "High",
-    status: "Open",
-    assignedStaff: "Raza Technician",
-    createdAt: "2026-08-08 09:30 AM",
-    updatedAt: "2026-08-08 09:30 AM",
-  },
-  {
-    id: "TKT-502",
-    customerId: "EF-1005",
-    customerName: "Bilal Ahmed",
-    phone: "0333-8889900",
-    address: "Shop 12, Commercial Market",
-    category: "Slow Speed",
-    description: "Ping fluctuating during peak hours from 6 PM to 10 PM.",
-    priority: "Medium",
-    status: "In Progress",
-    assignedStaff: "Ali Technician",
-    createdAt: "2026-08-07 04:15 PM",
-    updatedAt: "2026-08-08 10:00 AM",
-    resolutionNotes: "Checking bandwidth allocation on distribution switch Port 8.",
-  },
-  {
-    id: "TKT-503",
-    customerId: "EF-1003",
-    customerName: "Tariq Mahmood",
-    phone: "0345-5551234",
-    address: "Street 9, House 88, Model Town",
-    category: "Fiber Wire Cut",
-    description: "Fiber drop cable snapped by road construction tractor.",
-    priority: "Critical",
-    status: "Resolved",
-    assignedStaff: "Kamran Field Tech",
-    createdAt: "2026-08-06 11:00 AM",
-    updatedAt: "2026-08-06 03:30 PM",
-    resolutionNotes: "Spliced 4-core fiber wire with new joint box. Connection restored.",
-  },
-];
-
-const initialDailyChores: DailyChore[] = [
-  {
-    id: "CHR-101",
-    date: "2026-08-08",
-    title: "Collect monthly fees from Block B overdues",
-    type: "Collection",
-    amount: 12500,
-    assignedStaff: "Ali Technician",
-    status: "In Progress",
-    priority: "High",
-    notes: "Targeting 5 overdue accounts in Sector B",
-    createdAt: "08:00 AM",
-  },
-  {
-    id: "CHR-102",
-    date: "2026-08-08",
-    title: "Purchased 2 Roll Fiber Optical Drop Wire (1000m)",
-    type: "Expense",
-    amount: 18500,
-    assignedStaff: "Reception / Office Admin",
-    status: "Completed",
-    priority: "High",
-    notes: "Invoice #FB-402 from Wholesale Cable Trader",
-    createdAt: "10:15 AM",
-  },
-  {
-    id: "CHR-103",
-    date: "2026-08-08",
-    title: "DC (Disconnect) 3 non-paying users in Model Town",
-    type: "Maintenance Task",
-    assignedStaff: "Kamran Field Tech",
-    status: "Completed",
-    priority: "High",
-    notes: "Removed patch cord from NAP splitter #14",
-    createdAt: "11:30 AM",
-  },
-  {
-    id: "CHR-104",
-    date: "2026-08-08",
-    title: "Fuel Allowance for Field Bikes (2 Techs)",
-    type: "Expense",
-    amount: 1500,
-    assignedStaff: "Raza Technician",
-    status: "Completed",
-    priority: "Medium",
-    notes: "Field maintenance patrol fuel receipt",
-    createdAt: "01:00 PM",
-  },
-  {
-    id: "CHR-105",
-    date: "2026-08-08",
-    title: "Deposit Cash Collection in Meezan Bank",
-    type: "Admin Task",
-    amount: 45000,
-    assignedStaff: "Reception / Office Admin",
-    status: "Pending",
-    priority: "High",
-    notes: "Bank branch closing at 5:00 PM",
-    createdAt: "02:00 PM",
-  },
-];
+const initialCustomers: Customer[] = [];
+const initialPayments: Payment[] = [];
+const initialComplaints: Complaint[] = [];
+const initialDailyChores: DailyChore[] = [];
 
 const initialStaff: Staff[] = [
   { id: "STF-01", name: "Supervisor Admin", role: "Admin", phone: "0300-1110000", status: "Active", activeTicketsCount: 0, todayCollections: 0 },
@@ -254,7 +147,7 @@ export const WispProvider: React.FC<{ children: React.ReactNode }> = ({ children
         const res = await fetch("/api/customers");
         if (res.ok) {
           const json = await res.json();
-          if (json.customers && Array.isArray(json.customers) && json.customers.length > 0) {
+          if (json.customers && Array.isArray(json.customers)) {
             setCustomers(json.customers);
           }
         }

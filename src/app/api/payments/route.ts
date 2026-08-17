@@ -9,14 +9,9 @@ export async function GET() {
     const client = await clientPromise;
     const db = client.db("extreme_fiber_wisp");
     const payments = await db.collection("payments").find({}).toArray();
-
-    if (payments.length === 0) {
-      return NextResponse.json({ payments: initialData.payments, source: "seed" });
-    }
-
-    return NextResponse.json({ payments, source: "mongodb" });
+    return NextResponse.json({ payments: payments || [], source: "mongodb" });
   } catch (error: any) {
-    return NextResponse.json({ payments: initialData.payments, source: "memory_fallback" });
+    return NextResponse.json({ payments: [], source: "memory_fallback" });
   }
 }
 

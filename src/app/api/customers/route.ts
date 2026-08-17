@@ -8,24 +8,12 @@ export const dynamic = "force-dynamic";
 export async function GET() {
   try {
     await dbConnect();
-    let customers = await Customer.find({}).sort({ createdAt: -1 }).exec();
-
-    if (!customers || customers.length === 0) {
-      console.log("Database empty. Auto-seeding 511 subscribers into MongoDB Atlas...");
-      try {
-        await Customer.insertMany(initialData.customers, { ordered: false });
-        customers = await Customer.find({}).sort({ createdAt: -1 }).exec();
-      } catch (seedErr) {
-        console.warn("Seed partial warning:", seedErr);
-        customers = await Customer.find({}).sort({ createdAt: -1 }).exec();
-      }
-    }
-
-    return NextResponse.json({ customers, source: "mongodb" });
+    const customers = await Customer.find({}).sort({ createdAt: -1 }).exec();
+    return NextResponse.json({ customers: customers || [], source: "mongodb" });
   } catch (error: any) {
     console.error("Error fetching customers from MongoDB:", error.message || error);
     return NextResponse.json(
-      { customers: initialData.customers, source: "memory_fallback", error: error.message },
+      { customers: [], source: "memory_fallback", error: error.message },
       { status: 500 }
     );
   }

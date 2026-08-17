@@ -40,14 +40,9 @@ export async function GET() {
     const client = await clientPromise;
     const db = client.db("extreme_fiber_wisp");
     const complaints = await db.collection("complaints").find({}).toArray();
-
-    if (complaints.length === 0) {
-      return NextResponse.json({ complaints: seedComplaints });
-    }
-
-    return NextResponse.json({ complaints });
+    return NextResponse.json({ complaints: complaints || [] });
   } catch (error: any) {
-    return NextResponse.json({ complaints: seedComplaints });
+    return NextResponse.json({ complaints: [] });
   }
 }
 
